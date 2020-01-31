@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 
 interface UnderscoresProps {
-  underscores: string;
+  underscores: string[];
 }
 
 const UnderscoreStyles = styled.div`

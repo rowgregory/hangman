@@ -5,7 +5,7 @@ import letters from "../variables/letters";
 
 interface State {
   word: string;
-  underscores: string;
+  underscores: string[];
   wrongLetters: number;
   gameOver: boolean;
   usedLetters: string[];
@@ -34,7 +34,7 @@ interface State {
 
 type Action =
   | { type: "SET_WORD"; word: string }
-  | { type: "SET_UNDERSCORES"; underscores: string }
+  | { type: "SET_UNDERSCORES"; underscores: string[] }
   | { type: "SET_WRONG_LETTER_AMOUNT"; wrongLetters: number }
   | { type: "SET_GAME_OVER"; gameOver: boolean }
   | { type: "SET_USED_LETTERS"; usedLetters: string[] }
@@ -57,7 +57,7 @@ type Action =
 
 const initialState = {
   word: "",
-  underscores: "_ _ _ _",
+  underscores: ["_ _ _ _"],
   wrongLetters: 0,
   gameOver: false,
   usedLetters: [],
@@ -220,13 +220,12 @@ const Hangman: FC = () => {
           .split("")
           .map((alpha: string) =>
             alpha === " " ? " " : arr.indexOf(alpha) < 0 ? "_" : alpha
-          )
-          .join("");
+          );
 
         dispatch({ type: "SET_UNDERSCORES", underscores: newWord });
 
         let counts = {} as any;
-        let elements = newWord.split("");
+        let elements = newWord;
 
         elements.forEach((x: string | number) => {
           counts[x] = (counts[x] || 0) + 1;
@@ -237,7 +236,11 @@ const Hangman: FC = () => {
     }
 
     // winner
-    if (newWord === word && state.losses.missingLetters.length <= 0) {
+    if (
+      newWord &&
+      newWord[0] === word &&
+      state.losses.missingLetters.length <= 0
+    ) {
       console.log("this is if we have won");
       dispatch({ type: "SET_WINS" });
       setTimeout(() => {
@@ -372,8 +375,7 @@ const Hangman: FC = () => {
 
         let hiddenWord = rand
           .split("")
-          .map((letter: string) => (letter === " " ? " " : "_"))
-          .join("");
+          .map((letter: string) => (letter === " " ? " " : "_"));
 
         dispatch({ type: "SET_UNDERSCORES", underscores: hiddenWord });
       }
@@ -483,20 +485,53 @@ const Hangman: FC = () => {
     // WIP
     let wrongWord: string = "";
 
-    state.losses.missingIndex.forEach((num, index) => {
+    // state.losses.missingIndex.forEach((num, index) => {
+    console.log(word, state.underscores, "stuff");
+    let newWord = word;
+    let finished: string[] = [];
+    let newUnderscores: string[] = state.underscores;
+    newWord.split("").filter((letter: string, i: number): void => {
       setTimeout(() => {
-        wrongWord = state.underscores
-          .split("")
-          .map((alpha: string, i: number) =>
-            alpha === "_" && word[i] === word[num] ? word[num] : alpha
-          )
-          .join("");
-
-        console.log(wrongWord);
-
-        dispatch({ type: "SET_UNDERSCORES", underscores: wrongWord });
-      }, index * 300);
+        console.log(letter, "LETTER", newUnderscores[i], "LETTA");
+        if (letter === newUnderscores[i]) {
+          finished.push(letter);
+          dispatch({
+            type: "SET_UNDERSCORES",
+            underscores: finished
+          });
+          return;
+        } else {
+          finished.push(word[i]);
+          dispatch({
+            type: "SET_UNDERSCORES",
+            underscores: finished
+          });
+          return;
+        }
+      }, i * 500);
     });
+    // console.log(finished, "finished");
+    // newUnderscores.forEach((a: string, i: number) => {
+    //   setTimeout(() => {
+    //     dispatch({ type: "SET_UNDERSCORES", underscores: finished });
+    //   }, i * 600);
+    // });
+    // setTimeout(() => {
+    //   wrongWord = state.underscores
+    //     .split("")
+    //     .map((letter: string, i: number) => {
+    //       if (letter === "_") {
+    //         return word[i];
+    //       }
+    //       return letter;
+    //     })
+    //     .join("");
+
+    //   console.log(wrongWord, "wrong");
+    //   dispatch({ type: "SET_UNDERSCORES", underscores: wrongWord });
+    // }, 1 * 300);
+    // }
+    // );
 
     // below is an alternative way that is
     // similar but not quite there

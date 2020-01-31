@@ -7,7 +7,7 @@ interface HintProps {
   wrongLetters: number;
   lettersLeft: number;
   usedHint: boolean;
-  underscores: string;
+  underscores: string[];
 }
 
 interface HintButtonProps {

@@ -54,7 +54,7 @@ interface HangmanScreenProps {
   guess: Function;
   letters: string[];
   word: string;
-  underscores: string;
+  underscores: string[];
   wrongLetters: number;
   usedLetters: string[];
   gameOver: boolean;

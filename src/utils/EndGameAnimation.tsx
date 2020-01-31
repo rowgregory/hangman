@@ -29,7 +29,7 @@ const Body = styled.g<DelayProps>`
 interface EndGameAnimationProps {
   wrongLetters: number;
   lettersLeft: number;
-  underscores: string;
+  underscores: string[];
 }
 
 export const EndGameAnimation = ({

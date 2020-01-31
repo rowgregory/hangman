@@ -37,7 +37,7 @@ interface AlphabetProps {
   gameOver: boolean;
   margin: number;
   wrongLetters: number;
-  underscores: string;
+  underscores: string[];
 }
 
 const Alphabet = ({
