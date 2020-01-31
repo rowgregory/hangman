@@ -82,7 +82,7 @@ const words = [
     ]
   },
   {
-    theme: "glam metal bands",
+    theme: "80's metal/glam bands",
     names: [
       "bon jovi",
       "motley crue",
@@ -128,6 +128,26 @@ const words = [
       "watermelon",
       "cantelope",
       "tangerine"
+    ]
+  },
+  {
+    theme: "dinosaurs",
+    names: [
+      "ardonyx",
+      "bactrosaurus",
+      "camelotia",
+      "dacentrurus",
+      "tyrannosaurus rex",
+      "velociraptor",
+      "triceratops",
+      "stegosaurus",
+      "pterodactyl",
+      "brontosaurus",
+      "theropods",
+      "gallimimus",
+      "armargasaurus",
+      "efraasia",
+      "gargoyleosaurus"
     ]
   }
 ];

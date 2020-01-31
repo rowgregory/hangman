@@ -2,36 +2,43 @@ import React from "react";
 import styled from "styled-components";
 import Alphabet from "./Alphabet";
 // import { GiFruitBowl } from "react-icons/gi";
+import RandomizeCategory from "./RandomizeCategory";
+import Hint from "./Hint";
+import "../index.css";
+import { EndGameAnimation } from "../utils/EndGameAnimation";
+import GameOver from "./GameOver";
+import Underscores from "./Underscores";
 
-const GameOverWrapper = styled.div`
-  position: absolute;
-  z-index: 2;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  align-self: center;
-  flex-direction: column;
-`;
+interface CategoryButtonProps {
+  theme: string;
+  randCategoryChosen: string;
+  randomCategory: string;
+}
 
-const PlayAgain = styled.button`
-  width: 100px;
-  height: 50px;
-  background: #234;
-  color: #fff;
-  border-radius: 20px;
-  cursor: pointer;
+const CategoryButton = styled.button<CategoryButtonProps>`
+  &:disabled {
+    color: ${props =>
+      props.randCategoryChosen === props.theme
+        ? "steelblue"
+        : props.randomCategory === props.theme
+        ? "#fff"
+        : "#000"};
+    background: ${props =>
+      props.randCategoryChosen === props.theme
+        ? "#fff"
+        : props.randomCategory === props.theme
+        ? "steelblue"
+        : "#fff"};
+  }
   margin: 10px;
-`;
-
-const Results = styled.h3`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  align-self: center;
+  padding: 10px;
+  cursor: pointer;
+  border: ${props =>
+    props.randCategoryChosen === props.theme ? "2px solid steelblue" : ""};
+  transform: ${props =>
+    props.randCategoryChosen === props.theme ? "scale(1.15)" : ""};
+  transition: ${props =>
+    props.randCategoryChosen === props.theme ? "0.2s" : ""};
 `;
 
 interface BackgroundProps {
@@ -39,7 +46,8 @@ interface BackgroundProps {
 }
 
 const Game = styled.div<BackgroundProps>`
-  opacity: ${props => props.gameDone === true && 0.15};
+  /* opacity: ${props => props.gameDone && 0.15}; */
+  display: ${props => props.gameDone && "none"};
 `;
 
 interface HangmanScreenProps {
@@ -47,7 +55,7 @@ interface HangmanScreenProps {
   letters: string[];
   word: string;
   underscores: string;
-  guessCount: number;
+  wrongLetters: number;
   usedLetters: string[];
   gameOver: boolean;
   startGame: Function;
@@ -56,6 +64,15 @@ interface HangmanScreenProps {
   start: boolean;
   persistTheme: string;
   chooseNewTheme: Function;
+  randomize: Function;
+  randomCategory: string;
+  randCategoryChosen: string;
+  counter: number;
+  giveHint: Function;
+  lettersLeft: number;
+  usedHint: boolean;
+  wins: number;
+  losses: number;
 }
 
 const Hangman = ({
@@ -63,7 +80,7 @@ const Hangman = ({
   letters,
   word,
   underscores,
-  guessCount,
+  wrongLetters,
   usedLetters,
   gameOver,
   startGame,
@@ -71,48 +88,52 @@ const Hangman = ({
   theme,
   start,
   persistTheme,
-  chooseNewTheme
+  chooseNewTheme,
+  randomize,
+  randomCategory,
+  randCategoryChosen,
+  counter,
+  giveHint,
+  lettersLeft,
+  usedHint,
+  wins,
+  losses
 }: HangmanScreenProps) => {
   return (
-    <>
+    <div>
       <Game gameDone={gameOver}>
-        <div style={{ display: "flex", justifyContent: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center"
+          }}
+        >
           <h1
             style={{
               display: "flex",
-              justifyContent: "center"
+              justifyContent: "center",
+              fontFamily: "Baloo Bhai"
             }}
           >
             Hangman
           </h1>
-          {/* {start && (
-            <div style={{ position: "absolute", top: 43.5, left: "60%" }}>
-              {persistTheme}
-              {persistTheme === "fruits" && <GiFruitBowl />}
-            </div>
-          )} */}
+          <div style={{ fontFamily: "Baloo Bhai" }}>
+            {`${persistTheme.charAt(0).toUpperCase()}${persistTheme.slice(1)}`}
+          </div>
         </div>
       </Game>
 
-      {gameOver && (
-        <GameOverWrapper>
-          {guessCount >= 10 && (
-            <Results>
-              Sorry, you have lost. The correct word was {word.toUpperCase()}
-            </Results>
-          )}
-          {underscores.indexOf("_") < 0 && (
-            <Results>
-              Good job! You guessed {word.toUpperCase()}!
-              {persistTheme === "glam metal bands" && " ROCK ON"}
-            </Results>
-          )}
-          <PlayAgain onClick={() => startGame(persistTheme)}>
-            Play again
-          </PlayAgain>
-          <button onClick={() => chooseNewTheme()}>Choose New Theme</button>
-        </GameOverWrapper>
-      )}
+      <GameOver
+        wrongLetters={wrongLetters}
+        underscores={underscores}
+        persistTheme={persistTheme}
+        startGame={startGame}
+        chooseNewTheme={chooseNewTheme}
+        word={word}
+        gameOver={gameOver}
+      />
 
       <div
         style={{
@@ -129,20 +150,24 @@ const Hangman = ({
               <div style={{ display: "flex" }}>
                 {theme.map((theme: string, i: number) => {
                   return (
-                    <button
-                      style={{
-                        margin: "10px",
-                        padding: "10px",
-                        cursor: "pointer"
-                      }}
+                    <CategoryButton
+                      theme={theme}
+                      randCategoryChosen={randCategoryChosen}
+                      randomCategory={randomCategory}
+                      disabled={counter > 0 ? true : false}
                       onClick={() => startGame(theme)}
                       key={i}
                     >
                       {theme}
-                    </button>
+                    </CategoryButton>
                   );
                 })}
               </div>
+              <RandomizeCategory
+                randomize={randomize}
+                categories={theme}
+                counter={counter}
+              />
             </div>
           </>
         )}
@@ -156,21 +181,39 @@ const Hangman = ({
               flexDirection: "column"
             }}
           >
-            <div style={{ letterSpacing: "1rem" }}>{underscores}</div>
+            <EndGameAnimation
+              wrongLetters={wrongLetters}
+              lettersLeft={lettersLeft}
+              underscores={underscores}
+            />
+            <Underscores underscores={underscores} />
             <Alphabet
-              margin={50}
+              margin={0}
               usedLetters={usedLetters}
               letters={letters}
               guess={guess}
               gameOver={gameOver}
+              wrongLetters={wrongLetters}
+              underscores={underscores}
             />
-            <div>You have {10 - guessCount} guesses left</div>
+            <Hint
+              giveHint={giveHint}
+              word={word}
+              wrongLetters={wrongLetters}
+              lettersLeft={lettersLeft}
+              usedHint={usedHint}
+              underscores={underscores}
+            />
+            {/* {persistTheme === "fruits" && <GiFruitBowl />} */}
+            <div>You have {10 - wrongLetters} guesses left</div>
             <div>Used letters: {usedLetters.map(item => item)}</div>
             <div>Games Played: {gamesPlayed}</div>
+            <div>wins: {wins}</div>
+            <div>losses: {losses}</div>
           </div>
         )}
       </Game>
-    </>
+    </div>
   );
 };
 
