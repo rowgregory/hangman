@@ -33,7 +33,7 @@ const Results = styled.h3`
 
 interface GameOverProps {
   wrongLetters: number;
-  underscores: string;
+  underscores: string[];
   persistTheme: string;
   startGame: Function;
   chooseNewTheme: Function;
@@ -61,7 +61,7 @@ const GameOver = ({
               </Results>
             </>
           )}
-          {underscores.indexOf("_") < 0 && (
+          {underscores.includes("_") && (
             <>
               <Results>
                 Good job! You guessed {word.toUpperCase()}!

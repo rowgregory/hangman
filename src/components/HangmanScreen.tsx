@@ -54,7 +54,7 @@ interface HangmanScreenProps {
   guess: Function;
   letters: string[];
   word: string;
-  underscores: string;
+  underscores: string[];
   wrongLetters: number;
   usedLetters: string[];
   gameOver: boolean;
@@ -72,7 +72,12 @@ interface HangmanScreenProps {
   lettersLeft: number;
   usedHint: boolean;
   wins: number;
-  losses: number;
+  losses: {
+    lost: boolean;
+    amount: number;
+    missingLetters: string[];
+    missingIndex: number[];
+  };
 }
 
 const Hangman = ({
@@ -97,7 +102,7 @@ const Hangman = ({
   lettersLeft,
   usedHint,
   wins,
-  losses
+  losses: { lost, amount, missingLetters, missingIndex }
 }: HangmanScreenProps) => {
   return (
     <div>
@@ -209,7 +214,7 @@ const Hangman = ({
             <div>Used letters: {usedLetters.map(item => item)}</div>
             <div>Games Played: {gamesPlayed}</div>
             <div>wins: {wins}</div>
-            <div>losses: {losses}</div>
+            <div>losses: {amount}</div>
           </div>
         )}
       </Game>

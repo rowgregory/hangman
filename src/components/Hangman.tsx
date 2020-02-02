@@ -5,7 +5,7 @@ import letters from "../variables/letters";
 
 interface State {
   word: string;
-  underscores: string;
+  underscores: string[];
   wrongLetters: number;
   gameOver: boolean;
   usedLetters: string[];
@@ -19,7 +19,6 @@ interface State {
   counter: number;
   randCategoryChosen: string;
   wordIndex: number;
-  // totalGuesses: number;
   lettersLeft: number;
   usedHint: boolean;
   wins: number;
@@ -29,12 +28,12 @@ interface State {
     missingLetters: string[];
     missingIndex: number[];
   };
-  missedLetter: string;
+  revealLetter: number;
 }
 
 type Action =
   | { type: "SET_WORD"; word: string }
-  | { type: "SET_UNDERSCORES"; underscores: string }
+  | { type: "SET_UNDERSCORES"; underscores: string[] }
   | { type: "SET_WRONG_LETTER_AMOUNT"; wrongLetters: number }
   | { type: "SET_GAME_OVER"; gameOver: boolean }
   | { type: "SET_USED_LETTERS"; usedLetters: string[] }
@@ -48,16 +47,15 @@ type Action =
   | { type: "SET_COUNTER"; counter: number }
   | { type: "SET_RAND_WORD_CHOSEN"; randCategoryChosen: string }
   | { type: "SET_WORD_INDEX"; wordIndex: number }
-  // | { type: "SET_TOTAL_GUESSES"; totalGuesses: number }
   | { type: "SET_TOTAL_LETTERS_LEFT"; lettersLeft: number }
   | { type: "SET_USED_HINT"; usedHint: boolean }
   | { type: "SET_WINS" }
   | { type: "SET_LOSSES"; missingLetters: string[]; missingIndex: number[] }
-  | { type: "SET_MISSED_LETTER"; missedLetter: string };
+  | { type: "REVEAL_LETTER"; revealLetter: number };
 
 const initialState = {
   word: "",
-  underscores: "_ _ _ _",
+  underscores: ["_ _ _ _"],
   wrongLetters: 0,
   gameOver: false,
   usedLetters: [],
@@ -71,7 +69,6 @@ const initialState = {
   counter: 0,
   randCategoryChosen: "",
   wordIndex: -1,
-  // totalGuesses: 0,
   lettersLeft: 10,
   usedHint: false,
   wins: 0,
@@ -81,7 +78,7 @@ const initialState = {
     missingLetters: [],
     missingIndex: []
   },
-  missedLetter: ""
+  revealLetter: 0
 };
 
 const reducer = (state: State, action: Action): State => {
@@ -161,11 +158,6 @@ const reducer = (state: State, action: Action): State => {
         ...state,
         wordIndex: action.wordIndex
       };
-    // case "SET_TOTAL_GUESSES":
-    //   return {
-    //     ...state,
-    //     totalGuesses: action.totalGuesses
-    //   };
     case "SET_TOTAL_LETTERS_LEFT":
       return {
         ...state,
@@ -193,11 +185,12 @@ const reducer = (state: State, action: Action): State => {
           missingIndex: action.missingIndex
         }
       };
-
-    case "SET_MISSED_LETTER":
+    case "REVEAL_LETTER":
       return {
         ...state,
-        missedLetter: action.missedLetter
+        underscores: state.underscores.map((letter: string, i: number) =>
+          i === action.revealLetter ? state.word[action.revealLetter] : letter
+        )
       };
     default:
       return state;
@@ -220,13 +213,12 @@ const Hangman: FC = () => {
           .split("")
           .map((alpha: string) =>
             alpha === " " ? " " : arr.indexOf(alpha) < 0 ? "_" : alpha
-          )
-          .join("");
+          );
 
         dispatch({ type: "SET_UNDERSCORES", underscores: newWord });
 
         let counts = {} as any;
-        let elements = newWord.split("");
+        let elements = newWord;
 
         elements.forEach((x: string | number) => {
           counts[x] = (counts[x] || 0) + 1;
@@ -237,7 +229,11 @@ const Hangman: FC = () => {
     }
 
     // winner
-    if (newWord === word && state.losses.missingLetters.length <= 0) {
+    if (
+      newWord &&
+      newWord.join("") === word &&
+      state.losses.missingLetters.length <= 0
+    ) {
       console.log("this is if we have won");
       dispatch({ type: "SET_WINS" });
       setTimeout(() => {
@@ -248,6 +244,7 @@ const Hangman: FC = () => {
     // loser
     if (state.wrongLetters >= 10) {
       console.log("you have lost");
+
       let indexOfMissedLetterArr: number[] = [];
 
       for (let j = 0; j < state.underscores.length; j++) {
@@ -372,8 +369,7 @@ const Hangman: FC = () => {
 
         let hiddenWord = rand
           .split("")
-          .map((letter: string) => (letter === " " ? " " : "_"))
-          .join("");
+          .map((letter: string) => (letter === " " ? " " : "_"));
 
         dispatch({ type: "SET_UNDERSCORES", underscores: hiddenWord });
       }
@@ -479,53 +475,18 @@ const Hangman: FC = () => {
     dispatch({ type: "SET_START_GAME", start: false });
   };
 
-  const displayMissingLetters = (missingLetArr: string[]) => {
-    // WIP
-    let wrongWord: string = "";
-
-    state.losses.missingIndex.forEach((num, index) => {
-      setTimeout(() => {
-        wrongWord = state.underscores
-          .split("")
-          .map((alpha: string, i: number) =>
-            alpha === "_" && word[i] === word[num] ? word[num] : alpha
-          )
-          .join("");
-
-        console.log(wrongWord);
-
-        dispatch({ type: "SET_UNDERSCORES", underscores: wrongWord });
-      }, index * 300);
-    });
-
-    // below is an alternative way that is
-    // similar but not quite there
-
-    // const text: string | any[] = [];
-    // text[0] = word.split("");
-    // let delay = 400;
-    // let newArr: string[] = [];
-
-    // const addOneChar = (i: number, j: number) => {
-    //   newArr.push(text[i][j]);
-    //   console.log(newArr);
-    //   dispatch({ type: "SET_UNDERSCORES", underscores: newArr.join("") });
-
-    //   if (j + 1 < text[i].length) {
-    //     setTimeout(() => {
-    //       addOneChar(i, j + 1);
-    //     }, j / delay + 35);
-    //   }
-    // };
-
-    // setTimeout(() => {
-    //   addOneChar(0, 0);
-    // });
+  const displayMissingLetters = () => {
+    setTimeout(() => {
+      state.losses.missingIndex.forEach((num, index) => {
+        setTimeout(() => {
+          dispatch({ type: "REVEAL_LETTER", revealLetter: num });
+        }, index * 100);
+      });
+    }, 750);
   };
 
   const funcCallback = useCallback(displayMissingLetters, [
-    state.losses.missingLetters,
-    state.missedLetter
+    state.losses.missingLetters
   ]);
 
   const newFuncMemo = useMemo(() => funcCallback, [funcCallback]);
@@ -533,8 +494,8 @@ const Hangman: FC = () => {
   useEffect(() => {
     chooseTheme();
 
-    newFuncMemo(state.losses.missingLetters);
-  }, [newFuncMemo, state.losses.missingLetters, state.missedLetter]);
+    newFuncMemo();
+  }, [newFuncMemo, state.losses.missingLetters]);
 
   return (
     <>
@@ -560,7 +521,7 @@ const Hangman: FC = () => {
         lettersLeft={state.lettersLeft}
         usedHint={state.usedHint}
         wins={state.wins}
-        losses={state.losses.amount}
+        losses={state.losses}
       />
     </>
   );
